@@ -104,6 +104,6 @@ public class S3PropertyPlaceholderConfigurer extends
      */
     @Override
     public boolean isSingleton() {
-        return true;
+        return false;
     }
 }

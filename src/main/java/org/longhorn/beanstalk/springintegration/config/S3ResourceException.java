@@ -2,10 +2,16 @@ package org.longhorn.beanstalk.springintegration.config;
 
 public class S3ResourceException extends RuntimeException {
 
-    public S3ResourceException( String msg ) {
-        super( msg );
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    public S3ResourceException(String msg) {
+        super(msg);
     }
-    public S3ResourceException( String msg, Throwable cause ) {
-        super( msg, cause );
+
+    public S3ResourceException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }
