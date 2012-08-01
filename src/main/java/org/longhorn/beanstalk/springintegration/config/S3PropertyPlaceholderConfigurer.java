@@ -1,5 +1,6 @@
 package org.longhorn.beanstalk.springintegration.config;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -7,12 +8,14 @@ import java.util.Properties;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.core.io.Resource;
 
 public class S3PropertyPlaceholderConfigurer extends
-        PropertyPlaceholderConfigurer implements FactoryBean<Properties> {
+        PropertyPlaceholderConfigurer implements InitializingBean,
+        FactoryBean<Properties> {
 
     private S3ResourceLoader resourceLoader;
     private String[] s3Locations = new String[0];
@@ -39,11 +42,10 @@ public class S3PropertyPlaceholderConfigurer extends
 
     public void postProcessBeanFactory(
             ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        injectS3Resources();
         super.postProcessBeanFactory(beanFactory);
     }
 
-    private void injectS3Resources() {
+    private void injectS3Resources() throws IOException {
 
         int total = conventionalResources.length + s3Locations.length;
 
@@ -57,6 +59,11 @@ public class S3PropertyPlaceholderConfigurer extends
             }
             super.setLocations(allResources.toArray(new Resource[0]));
         }
+
+        this.processedProps = mergeProperties();
+
+        // Convert the merged properties, if necessary.
+        convertProperties(this.processedProps);
 
     }
 
@@ -74,7 +81,17 @@ public class S3PropertyPlaceholderConfigurer extends
             ConfigurableListableBeanFactory beanFactoryToProcess,
             Properties props) throws BeansException {
         super.processProperties(beanFactoryToProcess, props);
-        this.processedProps = props;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        injectS3Resources();
     }
 
     /*
@@ -84,7 +101,7 @@ public class S3PropertyPlaceholderConfigurer extends
      */
     @Override
     public Properties getObject() throws Exception {
-        return processedProps;
+        return this.processedProps;
     }
 
     /*
@@ -104,6 +121,7 @@ public class S3PropertyPlaceholderConfigurer extends
      */
     @Override
     public boolean isSingleton() {
-        return false;
+        return true;
     }
+
 }
